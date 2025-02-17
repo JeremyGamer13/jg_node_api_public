@@ -1,8 +1,18 @@
 {
-  "dependencies": {
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "gtts": "^0.2.1"
-  }
+    "scripts": {
+        "start": "node .",
+        "electron": "electron ."
+    },
+    "dependencies": {
+        "body-parser": "^1.20.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^4.19.2",
+        "glob": "^11.0.1",
+        "gtts": "^0.2.1",
+        "uuid": "^11.0.5"
+    },
+    "devDependencies": {
+        "electron": "^34.2.0"
+    }
 }

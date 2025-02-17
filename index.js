@@ -1,12 +1,19 @@
-const express = require('express')
+const fs = require("fs");
+const path = require("path");
+
+const AppGlobal = require("./src/util/global");
+const env = require("./src/util/env-util");
+
 const bodyParser = require('body-parser');
+const express = require('express')
 const cors = require('cors');
 
 const app = express();
-const port = 8080;
+const port = env.getNumber("PORT");
 
-// TODO: Automatically load endpoints.
-const endpointTTS = require("./src/api/tts");
+// create temporary directories
+if (!fs.existsSync(path.join(__dirname, "temp/"))) fs.mkdirSync(path.join(__dirname, "temp/"));
+if (!fs.existsSync(path.join(__dirname, "cache/"))) fs.mkdirSync(path.join(__dirname, "cache/"));
 
 app.use(cors({
     origin: '*',
@@ -19,9 +26,19 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json({ limit: "10kb" }));
 
 app.get('/', async function (_, res) {
-    res.send("ermm.. what the sigma...");
+    const state = AppGlobal.state;
+    res.json(state);
 });
+
+// endpoints
+// NOTE: All endpoints and index.js will be ran within electron sometimes. Keep this in mind.
+const endpointTTS = require("./src/api/tts");
 
 app.get('/tts', endpointTTS);
 
 app.listen(port, () => console.log('Started server on port ' + port));
+
+if (AppGlobal.isElectron) {
+    const electron = require("./src/electron");
+    electron.initialize();
+}
