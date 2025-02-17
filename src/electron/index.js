@@ -3,17 +3,21 @@ const path = require("path");
 
 const env = require("../util/env-util");
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const electron = require('electron');
 
 /**
- * @type {BrowserWindow}
+ * @type {electron.BrowserWindow}
  */
 let globalWindow = null;
+let shuttingDown = false;
+
 const createWindow = () => {
-    const win = new BrowserWindow({
-        width: 640,
-        height: 360,
+    const win = new electron.BrowserWindow({
+        icon: path.join(__dirname, '../../assets/icon.png'),
+        width: 720,
+        height: 640,
         sandbox: false,
+        show: !(env.getBool("ELECTRON_TRAY") && env.getBool("ELECTRON_TRAY_START")),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
@@ -26,7 +30,7 @@ const createWindow = () => {
 };
 
 const createHandlers = () => {
-    ipcMain.handle("delete-file-temp", (_, { path:filePath }) => {
+    electron.ipcMain.handle("delete-file-temp", (_, { path:filePath }) => {
         const tempPath = path.join(__dirname, "../../temp") + path.sep;
         if (!filePath.startsWith(tempPath)) return;
 
@@ -34,15 +38,72 @@ const createHandlers = () => {
         fs.rmSync(filePath);
     });
 };
+const createSystemTray = () => {
+    const iconPath = path.join(__dirname, '../../assets/icon.png');
+    const icon = electron.nativeImage.createFromPath(iconPath);
+    const tray = new electron.Tray(icon);
+
+    tray.setToolTip('jg_node_api | this is the app making the random ass noises btw');
+    tray.setTitle('jg_node_api');
+
+    const contextMenu = electron.Menu.buildFromTemplate([
+        { label: 'Show Window', type: 'normal', click: () => {
+            globalWindow.show();
+        } },
+        { label: 'Close', type: 'normal', click: () => {
+            shuttingDown = true;
+            electron.app.quit();
+        } },
+    ]);
+
+    tray.setContextMenu(contextMenu);
+    tray.on("click", () => {
+        globalWindow.show();
+    });
+
+    electron.app.on('before-quit', () => {
+        tray.destroy();
+    });
+};
 const initialize = async () => {
-    await app.whenReady();
+    await electron.app.whenReady();
+    electron.app.setAppUserModelId('com.jeremygamer13.jgnodeapi');
+
     const window = createWindow();
     globalWindow = window;
 
     createHandlers();
-    app.on('window-all-closed', () => {
-        if (process.platform !== 'darwin') app.quit();
+    electron.app.on('window-all-closed', () => {
+        if (!env.getBool("ELECTRON_TRAY")) {
+            shuttingDown = true;
+            if (process.platform !== 'darwin') electron.app.quit();
+            return;
+        }
     });
+
+    if (env.getBool("ELECTRON_TRAY")) {
+        createSystemTray(window);
+        window.on("close", (event) => {
+            if (shuttingDown) return;
+            event.preventDefault();
+            window.hide();
+        });
+    }
+
+    if (env.getBool("ELECTRON_NOTIFICATION")) {
+        const iconPath = path.join(__dirname, '../../assets/icon.png');
+        const icon = electron.nativeImage.createFromPath(iconPath);
+
+        const notification = new electron.Notification({
+            title: "Oy oy oy!",
+            body: env.getBool("ELECTRON_TRAY") ?
+                "jg_node_api is ON!!! Close in system tray to exit" :
+                "jg_node_api is ON!!! Close window to exit",
+            icon,
+        });
+
+        notification.show();
+    }
 
     return window;
 };

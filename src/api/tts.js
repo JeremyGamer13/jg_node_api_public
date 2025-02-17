@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
                 temp: true, // deletes on end
 
                 volume: env.getNumber("AUDIO_VOLUME"),
-                playbackRate: 1,
+                playbackRate: Number(req.query.speed || 1),
             });
 
             res.status(200);
