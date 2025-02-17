@@ -27,8 +27,8 @@ const createWindow = () => {
 
 const createHandlers = () => {
     ipcMain.handle("delete-file-temp", (_, { path:filePath }) => {
-        const tempPath = path.join(__dirname, "../../temp");
-        if (tempPath !== path.dirname(filePath)) return;
+        const tempPath = path.join(__dirname, "../../temp") + path.sep;
+        if (!filePath.startsWith(tempPath)) return;
 
         if (!fs.existsSync(filePath)) return;
         fs.rmSync(filePath);

@@ -33,8 +33,10 @@ app.get('/', async function (_, res) {
 // endpoints
 // NOTE: All endpoints and index.js will be ran within electron sometimes. Keep this in mind.
 const endpointTTS = require("./src/api/tts");
+const endpointAudio = require("./src/api/audio");
 
-app.get('/tts', endpointTTS);
+app.get('/api/tts', endpointTTS);
+app.get('/api/audio', endpointAudio);
 
 app.listen(port, () => console.log('Started server on port ' + port));
 

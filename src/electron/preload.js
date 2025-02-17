@@ -27,7 +27,7 @@ ipcRenderer.on("play-audio-normal", (_, opts) => {
     audio.playbackRate = opts.playbackRate || 1;
     audio.volume = opts.volume || 1;
     
-    if (opts.temp) {
+    if (opts.temp === true) {
         audio.onended = () => {
             ipcRenderer.invoke("delete-file-temp", { path: opts.path });
         };
