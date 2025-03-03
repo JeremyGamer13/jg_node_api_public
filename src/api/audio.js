@@ -10,7 +10,6 @@ const electron = require('../electron');
 module.exports = async (req, res) => {
     if (!AppGlobal.isElectron) return res.status(403).json({ error: "Host is not using Electron" });
     if (!env.getBool("ALLOW_AUDIO_APIS")) return res.status(403).json({ error: "Disabled on this host" });
-    if (!env.getBool("ALLOW_FILE_TEMP_APIS")) return res.status(403).json({ error: "Disabled on this host" });
 
     const assetsPath = path.join(__dirname, "../../assets") + path.sep;
     const audioPath = path.join(__dirname, "../../assets/" + req.query.path);

@@ -20,10 +20,10 @@ app.use(cors({
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
 app.use(bodyParser.urlencoded({
-    limit: "10kb",
+    limit: "10mb",
     extended: false
 }));
-app.use(bodyParser.json({ limit: "10kb" }));
+app.use(bodyParser.json({ limit: "10mb" }));
 
 app.get('/', async function (_, res) {
     const state = AppGlobal.state;
@@ -34,9 +34,13 @@ app.get('/', async function (_, res) {
 // NOTE: All endpoints and index.js will be ran within electron sometimes. Keep this in mind.
 const endpointTTS = require("./src/api/tts");
 const endpointAudio = require("./src/api/audio");
+const endpointUploadText = require("./src/api/uploadtext");
 
 app.get('/api/tts', endpointTTS);
 app.get('/api/audio', endpointAudio);
+app.post('/api/uploadtext', endpointUploadText);
+
+app.get('/uploadtext', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/uploadtext.html")));
 
 app.listen(port, () => console.log('Started server on port ' + port));
 

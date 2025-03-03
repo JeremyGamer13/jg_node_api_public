@@ -1,0 +1,19 @@
+<textarea id="content"></textarea>
+<button id="upload">Upload</button>
+
+<script>
+    const contentArea = document.getElementById("content");
+    const uploadButton = document.getElementById("upload");
+
+    const url = `${location.origin}/api/uploadtext`;
+    uploadButton.onclick = () => {
+        const text = contentArea.value;
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                text
+            })
+        });
+    };
+</script>
