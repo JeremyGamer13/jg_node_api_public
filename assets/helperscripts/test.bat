@@ -1,2 +1,0 @@
-echo "poop"
-pause

@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
     if (!env.getBool("ALLOW_AUDIO_APIS")) return res.status(403).json({ error: "Disabled on this host" });
 
     const assetsPath = path.join(__dirname, "../../assets") + path.sep;
-    const audioPath = path.join(__dirname, "../../assets/" + req.query.path);
+    const audioPath = path.join(__dirname, "../../assets/audio/" + req.query.path);
     if (!audioPath.startsWith(assetsPath)) return res.status(403).json({ error: "Invalid Sound Path" });
     if (!fs.existsSync(audioPath)) return res.status(400).json({ error: "Sound does not exist" });
 

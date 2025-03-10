@@ -1,5 +1,3 @@
-
-
 const { ipcRenderer } = require("electron");
 const AppGlobal = require("../util/global");
 
@@ -8,6 +6,17 @@ window.addEventListener("DOMContentLoaded", () => {
     if (stateArea) setInterval(() => {
         stateArea.value = JSON.stringify(AppGlobal.state, null, 4);
     }, 1000);
+
+    const overlayCreator = document.getElementById("app-overlay-create");
+    const overlayKiller = document.getElementById("app-overlay-kill");
+    if (overlayCreator && overlayKiller) {
+        overlayCreator.onclick = () => {
+            ipcRenderer.invoke("create-overlay-window");
+        };
+        overlayKiller.onclick = () => {
+            ipcRenderer.invoke("kill-overlay-window");
+        };
+    }
 });
 
 const createElementAudio = () => {
@@ -26,18 +35,15 @@ ipcRenderer.on("play-audio-normal", (_, opts) => {
     audio.src = opts.path;
     audio.playbackRate = opts.playbackRate || 1;
     audio.volume = opts.volume || 1;
-    
-    if (opts.temp === true) {
-        audio.onended = () => {
-            ipcRenderer.invoke("delete-file-temp", { path: opts.path });
-        };
-        audio.onerror = () => {
-            ipcRenderer.invoke("delete-file-temp", { path: opts.path });
-        };
-        audio.onsuspend = () => {
-            ipcRenderer.invoke("delete-file-temp", { path: opts.path });
-        };
-    }
+
+    audio.onended = () => {
+        if (opts.temp === true) ipcRenderer.invoke("delete-file-temp", { path: opts.path });
+        audio.remove();
+    };
+    audio.onerror = () => {
+        if (opts.temp === true) ipcRenderer.invoke("delete-file-temp", { path: opts.path });
+        audio.remove();
+    };
 
     audio.play();
 });

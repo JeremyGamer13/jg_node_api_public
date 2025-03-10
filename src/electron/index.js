@@ -8,7 +8,11 @@ const electron = require('electron');
 /**
  * @type {electron.BrowserWindow}
  */
-let globalWindow = null;
+let globalWindow;
+/**
+ * @type {electron.BrowserWindow}
+ */
+let overlayWindow;
 let shuttingDown = false;
 
 const createWindow = () => {
@@ -28,6 +32,29 @@ const createWindow = () => {
     win.loadFile(path.join(__dirname, 'index.html'));
     return win;
 };
+const createOverlayWindow = () => {
+    const win = new electron.BrowserWindow({
+        icon: path.join(__dirname, '../../assets/icon_o.png'),
+        width: 720,
+        height: 640,
+        sandbox: false,
+        transparent: true,
+        frame: false,
+        fullscreen: true,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload-overlay.js'),
+            nodeIntegration: true,
+            webSecurity: false
+        }
+    });
+
+    win.setIgnoreMouseEvents(true);
+    win.setAlwaysOnTop(true);
+    win.blur();
+
+    win.loadFile(path.join(__dirname, 'overlay.html'));
+    return win;
+};
 
 const createHandlers = () => {
     electron.ipcMain.handle("delete-file-temp", (_, { path:filePath }) => {
@@ -36,6 +63,19 @@ const createHandlers = () => {
 
         if (!fs.existsSync(filePath)) return;
         fs.rmSync(filePath);
+    });
+    electron.ipcMain.handle("create-overlay-window", () => {
+        if (overlayWindow) return;
+
+        const win = createOverlayWindow();
+        overlayWindow = win;
+        win.on("close", () => {
+            overlayWindow = null;
+        });
+    });
+    electron.ipcMain.handle("kill-overlay-window", () => {
+        if (!overlayWindow) return;
+        overlayWindow.close();
     });
 };
 const createSystemTray = () => {
@@ -111,4 +151,5 @@ const initialize = async () => {
 module.exports = {
     initialize,
     getWindow: () => globalWindow,
+    getOverlayWindow: () => overlayWindow,
 };
