@@ -5,15 +5,35 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>jg_node_api Overlay</title>
         <style>
+            #overlay-menu,
             #overlay-message {
-                padding: 8px;
+                padding: 12px;
+
+                font-family: monospace;
+                font-weight: bold;
+                font-size: 18px;
+                text-align: center;
                 border: 1px solid white;
                 background: black;
                 color: white;
-                text-align: center;
                 z-index: 9999999;
             }
+            #overlay-message {
+                pointer-events: none;
+            }
+            #overlay-menu {
+                z-index: 9999997;
+            }
+            #overlay-seperator,
+            #overlay-elements {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+            }
 
+            #overlay-seperator-center,
             #overlay-main {
                 position: absolute;
                 left: 0;
@@ -26,13 +46,56 @@
                 align-items: center;
                 justify-content: center;
             }
+            #overlay-main {
+                overflow: hidden;
+            }
+
+            #overlay-management-bar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 30px;
+
+                background: black;
+                border-bottom: 1px solid white;
+                z-index: 9999998;
+            }
+            #overlay-management-bar button {
+                height: 100%;
+                margin-right: 4px;
+
+                font-family: monospace;
+                font-weight: bold;
+                font-size: 16px;
+                background: transparent;
+                color: white;
+                border: 1px solid white;
+                cursor: pointer;
+            }
+            #overlay-management-bar button:hover,
+            #overlay-management-bar button:focus {
+                background: white;
+                color: black;
+            }
+            #overlay-management-bar button:active {
+                background: gray;
+            }
         </style>
     </head>
     <body>
         <!-- TODO: Management menu that is atop everything -->
         <div id="overlay-main">
-            <div id="overlay-message" style="display: none;">
-                poop
+            <div id="overlay-management" style="display:none;">
+                <div id="overlay-management-bar"></div>
+            </div>
+            <div id="overlay-seperator-center">
+                <div id="overlay-message" style="display: none;">
+                    poop
+                </div>
+            </div>
+            <div id="overlay-seperator-center">
+                <div id="overlay-menu" style="display: none;"></div>
             </div>
             <!-- overlay-elements can be cleared randomly -->
             <div id="overlay-elements"></div>

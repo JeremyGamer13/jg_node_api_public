@@ -5,3 +5,6 @@ cache/*
 temp/*
 
 assets/audio/hidden/*
+assets/video/hidden/*
+
+desktop.ini

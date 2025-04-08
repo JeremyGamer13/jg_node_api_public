@@ -39,6 +39,7 @@ const createOverlayWindow = () => {
         height: 640,
         sandbox: false,
         transparent: true,
+        resizable: false,
         frame: false,
         fullscreen: true,
         webPreferences: {
@@ -49,7 +50,7 @@ const createOverlayWindow = () => {
     });
 
     win.setIgnoreMouseEvents(true);
-    win.setAlwaysOnTop(true);
+    win.setAlwaysOnTop(true, "screen-saver");
     win.blur();
 
     win.loadFile(path.join(__dirname, 'overlay.html'));
@@ -57,13 +58,6 @@ const createOverlayWindow = () => {
 };
 
 const createHandlers = () => {
-    electron.ipcMain.handle("delete-file-temp", (_, { path:filePath }) => {
-        const tempPath = path.join(__dirname, "../../temp") + path.sep;
-        if (!filePath.startsWith(tempPath)) return;
-
-        if (!fs.existsSync(filePath)) return;
-        fs.rmSync(filePath);
-    });
     electron.ipcMain.handle("create-overlay-window", () => {
         if (overlayWindow) return;
 
@@ -76,6 +70,32 @@ const createHandlers = () => {
     electron.ipcMain.handle("kill-overlay-window", () => {
         if (!overlayWindow) return;
         overlayWindow.close();
+    });
+    electron.ipcMain.handle("get-overlay-window-selectable", () => {
+        if (!overlayWindow) return false;
+        return overlayWindow.isAlwaysOnTop();
+    });
+    electron.ipcMain.handle("update-overlay-window-selectable", (_, selectable) => {
+        if (!overlayWindow) return;
+
+        const win = overlayWindow;
+        if (selectable) {
+            win.setIgnoreMouseEvents(false);
+            win.setAlwaysOnTop(false);
+            win.focus();
+        } else {
+            win.setIgnoreMouseEvents(true);
+            win.setAlwaysOnTop(true, "screen-saver");
+            win.blur();
+        }
+    });
+
+    electron.ipcMain.handle("delete-file-temp", (_, { path: filePath }) => {
+        const tempPath = path.join(__dirname, "../../temp") + path.sep;
+        if (!filePath.startsWith(tempPath)) return;
+
+        if (!fs.existsSync(filePath)) return;
+        fs.rmSync(filePath);
     });
 };
 const createSystemTray = () => {
@@ -109,6 +129,7 @@ const initialize = async () => {
     await electron.app.whenReady();
     electron.app.setAppUserModelId('com.jeremygamer13.jgnodeapi');
 
+    // TODO: env to open the overlay window on startup
     const window = createWindow();
     globalWindow = window;
 

@@ -34,10 +34,12 @@ app.get('/', async function (_, res) {
 // NOTE: All endpoints and index.js will be ran within electron sometimes. Keep this in mind.
 const endpointTTS = require("./src/api/tts");
 const endpointAudio = require("./src/api/audio");
+const endpointVideo = require("./src/api/video");
 const endpointUploadText = require("./src/api/uploadtext");
 
 app.get('/api/tts', endpointTTS);
 app.get('/api/audio', endpointAudio);
+app.get('/api/video', endpointVideo);
 app.post('/api/uploadtext', endpointUploadText);
 
 app.get('/uploadtext', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/uploadtext.html")));

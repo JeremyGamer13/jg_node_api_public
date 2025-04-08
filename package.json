@@ -10,6 +10,7 @@
         "express": "^4.19.2",
         "glob": "^11.0.1",
         "gtts": "^0.2.1",
+        "uiohook-napi": "^1.5.4",
         "uuid": "^11.0.5"
     },
     "devDependencies": {
