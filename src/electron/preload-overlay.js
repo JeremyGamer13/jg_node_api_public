@@ -64,13 +64,36 @@ const createElementVideo = () => {
 };
 
 // handlers
-// TODO: elephant green screen, car crash, explosion, poppers, "what the fuck are you doing"
+// TODO: coins explosion, casino winning thing? with the money winning sound obv
 ipcRenderer.on("play-video-fullscreen", (_, opts) => {
     console.log(opts);
     if (!opts.path) return;
 
     const video = createElementVideo();
-    video.style = "position:absolute;left:0;top:0;width:100%;height:100%;";
+    video.style = "position:absolute;left:0;top:0;width:100%;height:100%;object-fit: fill;";
+    video.src = opts.path;
+    console.log(video);
+
+    video.onended = () => {
+        if (opts.temp === true) ipcRenderer.invoke("delete-file-temp", { path: opts.path });
+        video.remove();
+    };
+    video.onerror = () => {
+        if (opts.temp === true) ipcRenderer.invoke("delete-file-temp", { path: opts.path });
+        video.remove();
+    };
+
+    video.playbackRate = opts.playbackRate || 1;
+    video.volume = opts.volume || 1;
+    video.play();
+});
+// TODO: Make this work, should screenshot with windows module
+ipcRenderer.on("play-video-fullscreen-with-screenshot", (_, opts) => {
+    console.log(opts);
+    if (!opts.path) return;
+
+    const video = createElementVideo();
+    video.style = "position:absolute;left:0;top:0;width:100%;height:100%;object-fit: fill;";
     video.src = opts.path;
     console.log(video);
 

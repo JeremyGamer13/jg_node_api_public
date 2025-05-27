@@ -18,13 +18,33 @@ module.exports = async (req, res) => {
 
     const window = electron.getOverlayWindow();
     if (!window) return res.status(403).json({ error: "Overlay window is not active" });
-    // TODO: Have more video types
-    window.webContents.send("play-video-fullscreen", {
-        path: videoPath,
 
-        volume: env.getNumber("AUDIO_VOLUME"),
-        playbackRate: Number(req.query.speed || 1),
-    });
+    // TODO: Have a type that defines a video position, rotation, and scale.
+    switch (req.query.type) {
+        case "fullscreen-with-screenshot": {
+            window.webContents.send("play-video-fullscreen-with-screenshot", {
+                path: videoPath,
+
+                volume: Math.min(Number(req.query.volume || 1), 1) * env.getNumber("AUDIO_VOLUME"),
+                playbackRate: Number(req.query.speed || 1),
+
+                // CSS percentages
+                imageX: Number(req.query.x || 0),
+                imageY: Number(req.query.y || 0),
+                imageWidth: Number(req.query.width || 100),
+                imageHeight: Number(req.query.height || 100),
+            });
+        }
+        default: {
+            window.webContents.send("play-video-fullscreen", {
+                path: videoPath,
+
+                volume: Math.min(Number(req.query.volume || 1), 1) * env.getNumber("AUDIO_VOLUME"),
+                playbackRate: Number(req.query.speed || 1),
+            });
+            break;
+        }
+    }
 
     res.status(200);
     res.json({ success: true });

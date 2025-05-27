@@ -33,15 +33,18 @@ const createWindow = () => {
     return win;
 };
 const createOverlayWindow = () => {
+    // Making the overlay window fullscreen breaks some apps that also want to be in fullscreen.
+    // The taskbar will stay visible inside of games if we use real fullscreen.
+    const display = electron.screen.getPrimaryDisplay();
+    const { width, height } = display.workAreaSize;
     const win = new electron.BrowserWindow({
         icon: path.join(__dirname, '../../assets/icon_o.png'),
-        width: 720,
-        height: 640,
+        width,
+        height,
         sandbox: false,
         transparent: true,
         resizable: false,
         frame: false,
-        fullscreen: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload-overlay.js'),
             nodeIntegration: true,
@@ -51,21 +54,27 @@ const createOverlayWindow = () => {
 
     win.setIgnoreMouseEvents(true);
     win.setAlwaysOnTop(true, "screen-saver");
+    win.setPosition(0, 0, false);
     win.blur();
 
     win.loadFile(path.join(__dirname, 'overlay.html'));
     return win;
 };
+const createOverlayWindowSafe = () => {
+    if (overlayWindow) return;
+
+    const window = createOverlayWindow();
+    window.on("close", () => {
+        overlayWindow = null;
+    });
+
+    overlayWindow = window;
+    return window;
+};
 
 const createHandlers = () => {
     electron.ipcMain.handle("create-overlay-window", () => {
-        if (overlayWindow) return;
-
-        const win = createOverlayWindow();
-        overlayWindow = win;
-        win.on("close", () => {
-            overlayWindow = null;
-        });
+        createOverlayWindowSafe();
     });
     electron.ipcMain.handle("kill-overlay-window", () => {
         if (!overlayWindow) return;
@@ -129,7 +138,6 @@ const initialize = async () => {
     await electron.app.whenReady();
     electron.app.setAppUserModelId('com.jeremygamer13.jgnodeapi');
 
-    // TODO: env to open the overlay window on startup
     const window = createWindow();
     globalWindow = window;
 
@@ -164,6 +172,10 @@ const initialize = async () => {
         });
 
         notification.show();
+    }
+
+    if (env.getBool("ELECTRON_OVERLAY_WINDOW")) {
+        createOverlayWindowSafe();
     }
 
     return window;
