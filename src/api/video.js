@@ -6,6 +6,7 @@ const AppGlobal = require("../util/global");
 const env = require("../util/env-util");
 
 const electron = require('../electron');
+const windows = require('../util/windows.js');
 
 module.exports = async (req, res) => {
     if (!AppGlobal.isElectron) return res.status(403).json({ error: "Host is not using Electron" });
@@ -22,12 +23,16 @@ module.exports = async (req, res) => {
     // TODO: Have a type that defines a video position, rotation, and scale.
     switch (req.query.type) {
         case "fullscreen-with-screenshot": {
-            window.webContents.send("play-video-fullscreen-with-screenshot", {
+            if (!env.getBool("ALLOW_WINDOWS_APIS")) return res.status(403).json({ error: "Disabled on this host" });
+            const screenshot = await windows.screenshot(true);
+            const dataUrl = "data:image/png;base64," + screenshot.toString("base64");
+            window.webContents.send("play-video-fullscreen-with-image", {
                 path: videoPath,
 
                 volume: Math.min(Number(req.query.volume || 1), 1) * env.getNumber("AUDIO_VOLUME"),
                 playbackRate: Number(req.query.speed || 1),
 
+                imageUrl: dataUrl,
                 // CSS percentages
                 imageX: Number(req.query.x || 0),
                 imageY: Number(req.query.y || 0),

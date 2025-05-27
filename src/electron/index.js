@@ -185,4 +185,5 @@ module.exports = {
     initialize,
     getWindow: () => globalWindow,
     getOverlayWindow: () => overlayWindow,
+    electronExports: electron,
 };

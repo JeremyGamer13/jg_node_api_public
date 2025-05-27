@@ -1,20 +1,22 @@
 {
     "scripts": {
         "start": "node .",
-        "electron": "electron ."
+        "electron": "electron . --trace-warnings"
     },
     "dependencies": {
         "body-parser": "^1.20.2",
+        "canvas": "^3.1.0",
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "express": "^4.19.2",
         "glob": "^11.0.1",
         "gtts": "^0.2.1",
+        "screenshot-desktop": "^1.15.1",
         "uiohook-napi": "^1.5.4",
-        "uuid": "^11.0.5",
-        "windows-ffi": "^0.0.4"
+        "uuid": "^11.0.5"
     },
     "devDependencies": {
+        "@electron/rebuild": "^3.7.2",
         "electron": "^34.2.0"
     }
 }

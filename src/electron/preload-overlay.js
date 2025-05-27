@@ -64,7 +64,6 @@ const createElementVideo = () => {
 };
 
 // handlers
-// TODO: coins explosion, casino winning thing? with the money winning sound obv
 ipcRenderer.on("play-video-fullscreen", (_, opts) => {
     console.log(opts);
     if (!opts.path) return;
@@ -87,23 +86,38 @@ ipcRenderer.on("play-video-fullscreen", (_, opts) => {
     video.volume = opts.volume || 1;
     video.play();
 });
-// TODO: Make this work, should screenshot with windows module
-ipcRenderer.on("play-video-fullscreen-with-screenshot", (_, opts) => {
+ipcRenderer.on("play-video-fullscreen-with-image", (_, opts) => {
     console.log(opts);
     if (!opts.path) return;
 
-    const video = createElementVideo();
+    const div = document.createElement("div");
+    div.style = "position:absolute;left:0;top:0;width:100%;height:100%;";
+    overlayElements.appendChild(div);
+    console.log(div);
+
+    const image = document.createElement("img");
+    image.style = `position:absolute;`;
+    image.style.left = `${opts.imageX}%`;
+    image.style.top = `${opts.imageY}%`;
+    image.style.width = `${opts.imageWidth}%`;
+    image.style.height = `${opts.imageHeight}%`;
+    image.src = opts.imageUrl;
+    div.appendChild(image);
+    console.log(image);
+
+    const video = document.createElement("video");
     video.style = "position:absolute;left:0;top:0;width:100%;height:100%;object-fit: fill;";
     video.src = opts.path;
+    div.appendChild(video);
     console.log(video);
 
     video.onended = () => {
         if (opts.temp === true) ipcRenderer.invoke("delete-file-temp", { path: opts.path });
-        video.remove();
+        div.remove();
     };
     video.onerror = () => {
         if (opts.temp === true) ipcRenderer.invoke("delete-file-temp", { path: opts.path });
-        video.remove();
+        div.remove();
     };
 
     video.playbackRate = opts.playbackRate || 1;
