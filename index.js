@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { glob } = require("glob");
 
 const AppGlobal = require("./src/util/global");
 const env = require("./src/util/env-util");
@@ -32,17 +33,44 @@ app.get('/', async function (_, res) {
 
 // endpoints
 // NOTE: All endpoints and index.js will be ran within electron sometimes. Keep this in mind.
-const endpointTTS = require("./src/api/tts");
-const endpointAudio = require("./src/api/audio");
-const endpointVideo = require("./src/api/video");
-const endpointUploadText = require("./src/api/uploadtext");
+glob('./src/api/**').then((paths) => { // ["/api/audio.js"]
+    // make sure these paths are usable
+    const apiPaths = paths
+        .map(path => ("/" + path.replace(/\\/gmi, "/")).replace("/src", "")) // makes these into valid URLs
+        .filter(path => path.endsWith('.js')) // removes folders that only have other folders inside
+        // index.js marks that the folder name should be the endpoint,
+        // otherwise the file name is the endpoint
+        .map(path => path.endsWith('index.js') ? path.replace('/index.js', '') : path.replace('.js', ''))
+        .map(path => path.endsWith(".hidden") ? path.replace(".hidden", "") : path);
 
-app.get('/api/tts', endpointTTS);
-app.get('/api/audio', endpointAudio);
-app.get('/api/video', endpointVideo);
-app.post('/api/uploadtext', endpointUploadText);
+    const filePaths = paths
+        .filter(path => path.endsWith('.js')) // removes folders that only have other folders inside
+        .map(path => "./" + path.replace(/\\/gmi, "/")); // makes them just typed the same way you would type them in a require function
 
-app.get('/uploadtext', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/uploadtext.html")));
+    // create the endpoints on the app
+    for (let i = 0; i < filePaths.length; i++) {
+        const filePath = filePaths[i];
+        const apiPath = apiPaths[i];
+        const module = require(filePath);
+        if (module.method && module.request) {
+            if (!app[module.method]) {
+                console.warn('[!]', apiPath, 'has an invalid method');
+                continue;
+            }
+            const finalUrl = module.url || apiPath;
+            app[module.method](finalUrl, module.request);
+            console.log('[-]', finalUrl, 'is registered');
+        } else {
+            console.warn('[!]', apiPath, 'is missing a method and or endpoint');
+        }
+    }
+});
+
+// user pages
+app.get('/textupload', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/textupload.html")));
+
+// user pages assets
+app.get('/all.css', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/all.css")));
 
 app.listen(port, () => console.log('Started server on port ' + port));
 

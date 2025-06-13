@@ -1,22 +1,26 @@
 {
     "scripts": {
         "start": "node .",
-        "electron": "electron . --trace-warnings"
+        "electron": "electron . --trace-warnings",
+        "develectron": "nodemon"
     },
     "dependencies": {
         "body-parser": "^1.20.2",
         "canvas": "^3.1.0",
+        "cheerio": "^1.0.0",
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "express": "^4.19.2",
-        "glob": "^11.0.1",
+        "glob": "^11.0.2",
         "gtts": "^0.2.1",
         "screenshot-desktop": "^1.15.1",
         "uiohook-napi": "^1.5.4",
-        "uuid": "^11.0.5"
+        "uuid": "^11.0.5",
+        "xmlbuilder2": "^3.1.1"
     },
     "devDependencies": {
         "@electron/rebuild": "^3.7.2",
-        "electron": "^34.2.0"
+        "electron": "^34.2.0",
+        "nodemon": "^3.1.10"
     }
 }

@@ -3,8 +3,16 @@ node_modules/*
 
 cache/*
 temp/*
-
-assets/audio/hidden/*
-assets/video/hidden/*
+.dev/*
 
 desktop.ini
+
+# public omissions
+src/pages/hidden/*
+src/**/*.hidden.js
+
+# omit no matter what
+assets/audio/hidden/*
+assets/video/hidden/*
+assets/batch/hidden/*
+assets/images/hidden/*

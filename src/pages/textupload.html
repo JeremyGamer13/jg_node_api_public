@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="/all.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container-center">
+            <textarea id="content" class="specific-textupload-textarea"></textarea>
+            <br>
+            <button id="load" class="specific-textupload-button">Load</button>
+            <br>
+            <button id="upload" class="specific-textupload-button">Upload</button>
+        </div>
+        
+        <script>
+            const contentArea = document.getElementById("content");
+            const buttonLoad = document.getElementById("load");
+            const buttonUpload = document.getElementById("upload");
+        
+            buttonLoad.onclick = () => {
+                fetch(`${location.origin}/api/textload`)
+                    .then(res => res.text().then(text => {
+                        contentArea.value = text;
+                    }))
+                    .catch(alert);
+            };
+            buttonUpload.onclick = () => {
+                const text = contentArea.value;
+                fetch(`${location.origin}/api/textupload`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        text
+                    })
+                })
+                    .catch(alert);
+            };
+        </script>
+    </body>
+</html>

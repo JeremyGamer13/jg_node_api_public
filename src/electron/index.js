@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const env = require("../util/env-util");
+const AppGlobal = require("../util/global");
 
 const electron = require('electron');
 
@@ -139,6 +140,9 @@ const initialize = async () => {
     electron.app.setAppUserModelId('com.jeremygamer13.jgnodeapi');
 
     const window = createWindow();
+    if (AppGlobal.isGoingToReloadALot) {
+        window.blur();
+    }
     globalWindow = window;
 
     createHandlers();

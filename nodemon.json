@@ -1,0 +1,13 @@
+{
+    "watch": [
+        "index.js",
+        ".env",
+        "src/",
+        "assets/"
+    ],
+    "ext": "js,json,html,css,bat,png,jpeg,jpg,jfif,gif,mp3,ogg,wav,flac,mp4,webm,webp",
+    "ignore": [
+        "node_modules"
+    ],
+    "exec": "electron . --jg-reloads-alot --trace-warnings"
+}
