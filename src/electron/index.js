@@ -163,7 +163,7 @@ const initialize = async () => {
         });
     }
 
-    if (env.getBool("ELECTRON_NOTIFICATION")) {
+    if (env.getBool("ELECTRON_NOTIFICATION") && !AppGlobal.isGoingToReloadALot) {
         const iconPath = path.join(__dirname, '../../assets/icon.png');
         const icon = electron.nativeImage.createFromPath(iconPath);
 

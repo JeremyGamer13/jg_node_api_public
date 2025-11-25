@@ -57,10 +57,83 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // handler funcs
+const createElementImage = () => {
+    const image = document.createElement("img");
+    overlayElements.appendChild(image);
+    return image;
+};
+const createElementAudio = () => {
+    const audio = document.createElement("audio");
+    audio.style = "display:none;";
+    overlayElements.appendChild(audio);
+    return audio;
+};
 const createElementVideo = () => {
     const video = document.createElement("video");
     overlayElements.appendChild(video);
     return video;
+};
+
+const slice = (key, starting) => {
+    return key.split(starting).slice(1).join(starting);
+};
+const runSceneEventTriggeredHandler = (behaviorType, element, target, scene) => {
+    switch (behaviorType) {
+        case "show":
+            if (!target) return;
+            if (String(target.dataset.hidden) !== "true" && target.style.display !== "none") return;
+            target.dataset.hidden = false;
+            if (target.dataset.orgDisplay) {
+                target.style.display = target.dataset.orgDisplay;
+            } else {
+                target.style.display = "";
+            }
+            return;
+        case "hide":
+            if (!target) return;
+            target.dataset.hidden = true;
+            target.dataset.orgDisplay = target.style.display;
+            target.style.display = "none";
+            return;
+        case "pause":
+            if (!target) return;
+            target.pause();
+            return;
+        case "unpause":
+            if (!target) return;
+            target.play();
+            return;
+        case "mute":
+            if (!target) return;
+            target.muted = true;
+            return;
+        case "unmute":
+            if (!target) return;
+            target.muted = false;
+            return;
+        case "destroy":
+            if (!target) return;
+            target.remove();
+            return;
+        case "end":
+            scene.remove();
+            return;
+    }
+};
+const createSceneEventHandler = (eventType, element, target, scene) => {
+    if (eventType.startsWith("onload")) {
+        const type = slice(eventType, "onload");
+        element.onload = () => runSceneEventTriggeredHandler(type, element, target, scene);
+    } else if (eventType.startsWith("onerror")) {
+        const type = slice(eventType, "onerror");
+        element.onerror = () => runSceneEventTriggeredHandler(type, element, target, scene);
+    } else if (eventType.startsWith("onplay")) {
+        const type = slice(eventType, "onplay");
+        element.onplay = () => runSceneEventTriggeredHandler(type, element, target, scene);
+    } else if (eventType.startsWith("onended")) {
+        const type = slice(eventType, "onended");
+        element.onended = () => runSceneEventTriggeredHandler(type, element, target, scene);
+    }
 };
 
 // handlers
@@ -123,6 +196,129 @@ ipcRenderer.on("play-video-fullscreen-with-image", (_, opts) => {
     video.playbackRate = opts.playbackRate || 1;
     video.volume = opts.volume || 1;
     video.play();
+});
+ipcRenderer.on("display-scene", (_, opts) => {
+    console.log(opts);
+    const scene = opts.scene;
+    if (!scene) return;
+
+    // scene container
+    const sceneContainer = document.createElement("div");
+    sceneContainer.style = "position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;";
+    overlayElements.appendChild(sceneContainer);
+
+    // render objects
+    const runAfterInit = [];
+    const objectIdPrefix = `sceneOverlayObject${Date.now()}${Math.random()}`;
+    for (const id in scene.contents) {
+        const object = scene.contents[id];
+
+        // create the element, and do some
+        // type specific stuff first
+        /** @type {HTMLElement} */
+        let htmlElement = null;
+        switch (object.type) {
+            case "object":
+                const div = document.createElement("div");
+                div.id = `${objectIdPrefix}${id}`;
+                sceneContainer.appendChild(div);
+                htmlElement = div;
+
+                if (object.content) {
+                    runAfterInit.push(() => {
+                        const element = document.getElementById(objectIdPrefix + object.content);
+                        if (!element) return;
+                        div.appendChild(element);
+                    });
+                }
+                break;
+            case "text":
+                const span = document.createElement("span");
+                span.id = `${objectIdPrefix}${id}`;
+                sceneContainer.appendChild(span);
+                htmlElement = span;
+
+                span.innerText = `${object.content}`;
+                break;
+            case "image":
+                const image = createElementImage();
+                image.id = `${objectIdPrefix}${id}`;
+                sceneContainer.appendChild(image);
+                htmlElement = image;
+
+                image.src = object.assetPath;
+                break;
+            case "video":
+                const video = createElementVideo();
+                video.id = `${objectIdPrefix}${id}`;
+                sceneContainer.appendChild(video);
+                htmlElement = video;
+
+                video.src = object.assetPath;
+                break;
+            case "audio":
+                const audio = createElementAudio();
+                audio.id = `${objectIdPrefix}${id}`;
+                sceneContainer.appendChild(audio);
+                htmlElement = audio;
+
+                audio.src = object.assetPath;
+                break;
+        }
+
+        // apply styles
+        for (const styleProp in object.style) {
+            const styleVal = object.style[styleProp];
+            htmlElement.style[styleProp] = styleVal;
+        }
+        // apply properties
+        for (const propertyName in object.properties) {
+            const value = object.properties[propertyName];
+
+            switch (propertyName) {
+                case "onloadshow":
+                case "onloadhide":
+                case "onloadpause":
+                case "onloadunpause":
+                case "onloadmute":
+                case "onloadunmute":
+                case "onloaddestroy":
+                case "onloadend":
+                case "onerrorshow":
+                case "onerrorhide":
+                case "onerrorpause":
+                case "onerrorunpause":
+                case "onerrormute":
+                case "onerrorunmute":
+                case "onerrordestroy":
+                case "onerrorend":
+                case "onplayshow":
+                case "onplayhide":
+                case "onplaypause":
+                case "onplayunpause":
+                case "onplaymute":
+                case "onplayunmute":
+                case "onplaydestroy":
+                case "onplayend":
+                case "onendedshow":
+                case "onendedhide":
+                case "onendedpause":
+                case "onendedunpause":
+                case "onendedmute":
+                case "onendedunmute":
+                case "onendeddestroy":
+                case "onendedend":
+                    const target = document.getElementById(objectIdPrefix + value);
+                    createSceneEventHandler(propertyName, htmlElement, target, sceneContainer);
+                    continue;
+            }
+
+            htmlElement[propertyName] = value;
+        }
+    }
+    for (const func of runAfterInit) {
+        func();
+    }
 });
 
 // editing UI

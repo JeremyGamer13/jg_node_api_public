@@ -52,16 +52,23 @@ glob('./src/api/**').then((paths) => { // ["/api/audio.js"]
         const filePath = filePaths[i];
         const apiPath = apiPaths[i];
         const module = require(filePath);
-        if (module.method && module.request) {
-            if (!app[module.method]) {
-                console.warn('[!]', apiPath, 'has an invalid method');
-                continue;
-            }
+        if (module.register) {
+            // the module registers everything on it's own
             const finalUrl = module.url || apiPath;
-            app[module.method](finalUrl, module.request);
-            console.log('[-]', finalUrl, 'is registered');
+            module.register(app, finalUrl);
+            console.log('[?]', finalUrl, 'has registered content manually');
         } else {
-            console.warn('[!]', apiPath, 'is missing a method and or endpoint');
+            if (module.method && module.request) {
+                if (!app[module.method]) {
+                    console.warn('[!]', apiPath, 'has an invalid method');
+                    continue;
+                }
+                const finalUrl = module.url || apiPath;
+                app[module.method](finalUrl, module.request);
+                console.log('[-]', finalUrl, 'is registered');
+            } else {
+                console.warn('[!]', apiPath, 'is missing a method and or endpoint');
+            }
         }
     }
 });
@@ -71,6 +78,32 @@ app.get('/textupload', (_, res) => res.sendFile(path.join(__dirname, "./src/page
 
 // user pages assets
 app.get('/all.css', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/all.css")));
+
+// cdn
+const shouldHostCDN = env.getBool("HOST_CDN");
+const cdnFolderPath = path.join(__dirname, "./assets/cdn");
+if (shouldHostCDN && fs.existsSync(cdnFolderPath)) {
+    const deviceName = env.get("DEVICE_NAME");
+    const cdnPriority = env.getNumber("HOST_CDN_PRIORITY");
+    const cdnType = env.get("HOST_CDN_TYPE");
+    const cdnAlts = env.get("HOST_CDN_ALTERNATIVES").split(",");
+    const cdnMaxAge = env.get("HOST_CDN_MAX_AGE");
+    app.get('/cdn-stats', (_, res) => {
+        res.json({
+            available: true,
+            device: deviceName,
+            priority: cdnPriority,
+            type: cdnType,
+            alternatives: cdnAlts,
+            maxAge: cdnMaxAge,
+        });
+    });
+    app.use('/cdn', express.static(cdnFolderPath, {
+        maxAge: cdnMaxAge,
+        index: false,
+        fallthrough: false,
+    }));
+}
 
 app.listen(port, () => console.log('Started server on port ' + port));
 

@@ -6,13 +6,17 @@ temp/*
 .dev/*
 
 desktop.ini
+nohup.out
 
 # public omissions
+src/api/hidden/*
 src/pages/hidden/*
 src/**/*.hidden.js
+assets/cdn/*
 
 # omit no matter what
 assets/audio/hidden/*
 assets/video/hidden/*
 assets/batch/hidden/*
 assets/images/hidden/*
+assets/cdn/hidden/*
