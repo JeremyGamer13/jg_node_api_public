@@ -5,7 +5,7 @@
     const contentArea = document.getElementById("content");
     const uploadButton = document.getElementById("upload");
 
-    const url = `${location.origin}/api/uploadtext`;
+    const url = `${location.origin}/api/textupload`;
     uploadButton.onclick = () => {
         const text = contentArea.value;
         fetch(url, {
