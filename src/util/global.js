@@ -1,8 +1,9 @@
 const env = require("./env-util");
+const path = require("path");
 
 class AppGlobal {
     static uptimeStarted = Date.now();
-    static isElectron = process.argv0.endsWith("electron.exe");
+    static isElectron = path.basename(process.argv0).startsWith("electron");
     static isGoingToReloadALot = process.argv.includes("--jg-reloads-alot");
 
     static get state() {
