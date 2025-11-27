@@ -4,23 +4,377 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>jg_node_api</title>
+
+        <style>
+            body {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #app-runtime-elements {
+                display: none;
+            }
+            #app-ui {
+                width: 100%;
+                height: 100%;
+
+                display: flex;
+                flex-direction: column;
+            }
+            #app-tabs {
+                width: 100%;
+                height: 31px;
+                
+                display: flex;
+                flex-direction: row;
+
+                border-bottom: 1px solid black;
+
+                overflow: hidden;
+            }
+            .app-tab {
+                margin: 0;
+                padding: 4px 8px;
+
+                background: transparent;
+                border: 0;
+                border-right: 1px solid black;
+                font-weight: bold;
+
+                cursor: pointer;
+            }
+            #app-content {
+                width: 100%;
+                height: calc(100% - 32px);
+
+                overflow: auto;
+            }
+
+            .app-button-big {
+                width: 100%;
+                height: 32px;
+                padding: 8px;
+                margin: 4px 0;
+
+                font-weight: bold;
+                border-radius: 4px;
+
+                cursor: pointer;
+            }
+
+            #app-tabcontent-audios,
+            #app-tabcontent-overlays {
+                width: 100%;
+                height: 100%;
+            }
+            .tab-audios-settings,
+            .tab-overlays-settings {
+                width: 100%;
+                height: 95px;
+
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                align-content: flex-start;
+                justify-content: space-evenly;
+
+                border-bottom: 1px solid black;
+                overflow: auto;
+            }
+            .tab-audios-settings input[type="number"],
+            .tab-overlays-settings input[type="number"] {
+                width: 48px;
+            }
+            .tab-audios-list,
+            .tab-overlays-list {
+                width: 100%;
+                height: calc(100% - 96px);
+                
+                overflow: auto;
+            }
+
+            .soundboard-list {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .soundboard-button {
+                width: 128px;
+                height: 128px;
+                margin: 4px;
+
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+
+                overflow: hidden;
+            }
+            .soundboard-button p {
+                margin-block: 4px;
+
+                font-size: 24px;
+                font-weight: bold;
+            }
+            .soundboard-button p,
+            .soundboard-button span {
+                word-break: break-all;
+            }
+            .soundboard-button span.soundboard-button-notice {
+                font-style: italic;
+                font-weight: bold;
+            }
+        </style>
     </head>
     <body>
-        <!-- TODO: Make an app area and an app elements div and put stuff like audio elements in app elements div -->
-        <h1>API PANEL</h1>
-        <p>YOU ARE OPEN TO REQUESTS!! PEOPLE FROM THE internet CAN ACCESS ELECTRON APIS NOW</p>
-        <p>THIS IS THE MAIN WINDOW!! KEEP IT OPEN FOR EVERYTHING TO WORK PROPERLY</p>
+        <!-- app runtime stuff -->
+        <div id="app-runtime-elements"></div>
+        <!-- ui -->
+        <div id="app-ui">
+            <div id="app-tabs">
+                <!-- this order can be different from internal order because of convenience -->
+                <button class="app-tab" data-tab="home">Home</button>
+                <button class="app-tab" data-tab="overlays">Overlays</button>
+                <button class="app-tab" data-tab="audios">Audios</button>
+                <button class="app-tab" data-tab="info">Info</button>
+            </div>
+            <div id="app-content">
+                <div id="app-tabcontent-home">
+                    <h1>API PANEL</h1>
+                    <p>YOU ARE OPEN TO REQUESTS!! PEOPLE FROM THE internet CAN ACCESS ELECTRON APIS NOW</p>
+                    <p>THIS IS THE MAIN WINDOW!! KEEP IT OPEN FOR EVERYTHING TO WORK PROPERLY</p>
+                    <p>See Info if you are seeing this screen but stuff isnt working right</p>
+                    
+                    <br></br>
+                    <button class="app-button-big" id="app-overlay-create">
+                        Create overlay window for overlay endpoints
+                    </button>
+                    <button class="app-button-big" id="app-overlay-kill">
+                        Kill overlay window
+                    </button>
+                    <button class="app-button-big" id="app-clear-runtime-elements">
+                        Clear runtime elements
+                    </button>
+                    <br></br>
 
-        <br></br>
-        <button id="app-overlay-create">
-            Create overlay window for overlay endpoints
-        </button>
-        <button id="app-overlay-kill">
-            Kill overlay window
-        </button>
-        <br></br>
+                    <p>state:</p>
+                    <textarea disabled id="app-state" style="width:400px;height:150px;"></textarea>
+                </div>
+                <div id="app-tabcontent-audios">
+                    <div class="tab-audios-settings">
+                        <label>
+                            <span>Request Count:</span>
+                            <input id="tab-audios-request-count" type="number" min="1" value="1" step="1">
+                        </label>
+                        <label>
+                            <span>Multi-Request Delay:</span>
+                            <input id="tab-audios-request-delay" type="number" min="0" value="0" step="0.1">
+                        </label>
+                        <label>
+                            <span>Speed:</span>
+                            <input id="tab-audios-audio-speed" type="number" min="0" value="1" step="0.1" placeholder="Multiplier">
+                            <span>x</span>
+                        </label>
+                        <button id="app-clear-runtime-elements-audio" style="height:calc(100% - 2px)">
+                            Clear runtime elements
+                        </button>
+                    </div>
+                    <div class="tab-overlays-list">
+                        <div id="tab-audios" class="soundboard-list"></div>
+                    </div>
+                </div>
+                <div id="app-tabcontent-overlays">
+                    <div class="tab-overlays-settings">
+                        <label>
+                            <span>Request Count:</span>
+                            <input id="tab-overlays-request-count" type="number" min="1" value="1" step="1">
+                        </label>
+                        <label>
+                            <span>Multi-Request Delay:</span>
+                            <input id="tab-overlays-request-delay" type="number" min="0" value="0" step="0.1">
+                        </label>
+                        <label>
+                            <span>Speed:</span>
+                            <input id="tab-overlays-speed" type="number" min="0" value="1" step="0.1" placeholder="Multiplier">
+                            <span>x</span>
+                        </label>
+                    </div>
+                    <div class="tab-overlays-list">
+                        <div id="tab-overlays" class="soundboard-list"></div>
+                    </div>
+                </div>
+                <div id="app-tabcontent-info">
+                    <h1>Extra setup info</h1>
+                    <br>
 
-        <p>state:</p>
-        <textarea disabled id="app-state" style="width:400px;height:150px;"></textarea>
+                    <h1>Systems</h1>
+                    <h2>Linux</h2>
+                    <ul>
+                        <li>Make sure to run <code>sudo apt-get install imagemagick</code> for screenshots to work</li>
+                    </ul>
+                    <h1>Development</h1>
+                    <h2>jg_node_utils</h2>
+                    <ul>
+                        <li>Make sure to clone jg_node_utils and config then run <code>link-jg-node-utils.js</code> with Node</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </body>
+    <script>
+        // TAB SWITCHING
+        const tabs = document.getElementById("app-tabs");
+
+        let selectedTab = "";
+        const tabChanged = () => {
+            for (const tab of tabs.children) {
+                const tabId = tab.dataset.tab;
+                const tabContent = document.getElementById("app-tabcontent-" + tabId);
+                if (tabId !== selectedTab) {
+                    tabContent.style.display = "none";
+                } else {
+                    tabContent.style.display = "";
+                }
+            }
+        };
+
+        for (const tab of tabs.children) {
+            if (!selectedTab) {
+                selectedTab = tab.dataset.tab;
+                tabChanged();
+            }
+            tab.onclick = () => {
+                selectedTab = tab.dataset.tab;
+                tabChanged();
+            };
+        }
+
+        // "SOUNDBOARDS"
+        const audioList = document.getElementById("tab-audios");
+        const overlayList = document.getElementById("tab-overlays");
+        const makeSoundboardButton = (presetKey, preset) => {
+            const button = document.createElement("button");
+            const title = document.createElement("p");
+            const notice = document.createElement("span");
+            const description = document.createElement("span");
+
+            button.classList.add("soundboard-button");
+            notice.classList.add("soundboard-button-notice")
+            button.appendChild(title);
+            button.appendChild(notice);
+            button.appendChild(description);
+
+            title.innerText = preset.name;
+            description.innerText = preset.description;
+
+            switch (preset.endpoint) {
+                case "/api/video":
+                    notice.innerText = "(video)";
+                    break;
+                case "/api/audio":
+                    notice.innerText = "(audio)";
+                    break;
+                case "/api/tts":
+                    notice.innerText = "(TTS)";
+                    break;
+                case "/api/scene":
+                    notice.innerText = "(scene)";
+                    break;
+                default:
+                    notice.innerText = preset.endpoint;
+                    break;
+            }
+            switch (preset.content.type) {
+                case "fullscreen-with-screenshot":
+                    notice.innerText = "(video + screenshot)";
+                    break;
+            }
+
+            return button;
+        };
+        const handleSoundboardClick = async (soundboardType, presetFunc) => {
+            // first get request settings
+            let fetchCount = 1;
+            let fetchDelay = 0;
+            switch (soundboardType) {
+                case "audios": {
+                    const reqCountInput = document.getElementById("tab-audios-request-count");
+                    const reqDelayInput = document.getElementById("tab-audios-request-delay");
+                    fetchCount = reqCountInput.value;
+                    fetchDelay = reqDelayInput.value * 1000;
+                    break;
+                }
+                case "overlays": {
+                    const reqCountInput = document.getElementById("tab-overlays-request-count");
+                    const reqDelayInput = document.getElementById("tab-overlays-request-delay");
+                    fetchCount = reqCountInput.value;
+                    fetchDelay = reqDelayInput.value * 1000;
+                    break;
+                }
+            }
+
+            // then do soundboard settings
+            for (let i = 0; i < fetchCount; i++) {
+                const preset = presetFunc();
+                const presetContent = preset.content;
+                
+                switch (soundboardType) {
+                    case "audios": {
+                        const audioSpeedInput = document.getElementById("tab-audios-audio-speed");
+                        const audioSpeed = audioSpeedInput.value;
+                        presetContent.speed *= audioSpeed;
+                        break;
+                    }
+                    case "overlays": {
+                        const overlaySpeedInput = document.getElementById("tab-overlays-speed");
+                        const overlaySpeed = overlaySpeedInput.value;
+                        if (preset.endpoint === "/api/video") {
+                            presetContent.speed *= overlaySpeed;
+                        } else {
+                            // need to read all props and change playbackRate
+                            for (const key in presetContent) {
+                                const props = presetContent[key];
+                                if (!key.startsWith("prop")) continue;
+                                const propsObject = JSON.parse(props);
+                                if (propsObject.playbackRate) {
+                                    propsObject.playbackRate *= overlaySpeed;
+                                }
+                                // save props
+                                presetContent[key] = JSON.stringify(propsObject);
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                fetchSelf(preset.endpoint + jgNodeUtils.objectToSearchParams(presetContent));
+                await new Promise((resolve) => { setTimeout(() => { resolve(); }, fetchDelay); });
+            }
+        };
+        // audios
+        for (const presetName in jgNodeUtils.audioPresets) {
+            const presetFunc = jgNodeUtils.audioPresets[presetName];
+            const preset = presetFunc();
+            const button = makeSoundboardButton(presetName, preset);
+            audioList.appendChild(button);
+
+            button.onclick = () => handleSoundboardClick("audios", presetFunc);
+        }
+        // overlays
+        for (const presetName in jgNodeUtils.overlayPresets) {
+            const presetFunc = jgNodeUtils.overlayPresets[presetName];
+            const preset = presetFunc();
+            const button = makeSoundboardButton(presetName, preset);
+            overlayList.appendChild(button);
+            
+            button.onclick = () => handleSoundboardClick("overlays", presetFunc);
+        }
+    </script>
 </html>

@@ -74,6 +74,26 @@ const createOverlayWindowSafe = () => {
 };
 
 const createHandlers = () => {
+    electron.ipcMain.handle("request-self", async (_, options) => {
+        const url = new URL(`http://localhost:${env.getNumber("PORT")}${options.postHref}`);
+        if (url.hostname !== "localhost" && url.port !== env.get("PORT")) {
+            throw new Error("Invalid URL");
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            redirect: "error",
+        });
+        const text = await response.text();
+        return {
+            ok: response.ok,
+            headers: response.headers,
+            status: response.status,
+            statusText: response.statusText,
+            text: text,
+        };
+    });
+
     electron.ipcMain.handle("create-overlay-window", () => {
         createOverlayWindowSafe();
     });

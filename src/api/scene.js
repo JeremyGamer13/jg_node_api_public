@@ -6,7 +6,7 @@ const AppGlobal = require("../util/global.js");
 const env = require("../util/env-util.js");
 
 const electron = require('../electron/index.js');
-const windows = require('../util/windows.js');
+const OperatingSystem = require('../util/os.js');
 const Scene = require('../util/scene.js');
 const safeCss = require('../util/safe-css.js');
 
@@ -40,8 +40,8 @@ module.exports = {
 
                     switch (value) {
                         case "screenshot":
-                            if (!env.getBool("ALLOW_WINDOWS_APIS")) throw new Error("Disabled on this host");
-                            const screenshot = await windows.screenshot(true);
+                            if (!env.getBool("ALLOW_OPERATING_SYSTEM_APIS")) throw new Error("Disabled on this host");
+                            const screenshot = await OperatingSystem.screenshot(true);
                             const dataUrl = "data:image/png;base64," + screenshot.toString("base64");
                             sceneObject.type = "image";
                             sceneObject.assetPath = dataUrl;

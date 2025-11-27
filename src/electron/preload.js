@@ -1,6 +1,31 @@
-const { ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer } = require("electron");
 const AppGlobal = require("../util/global");
+const jgNodeUtils = require("jg-node-utils");
 
+contextBridge.exposeInMainWorld("jgNodeUtils", {
+    audioPresets: jgNodeUtils.audioPresets,
+    overlayPresets: jgNodeUtils.overlayPresets,
+    objectToSearchParams: jgNodeUtils.objectToSearchParams,
+});
+contextBridge.exposeInMainWorld("fetchSelf", (postHref, options = {}) => {
+    return ipcRenderer.invoke("request-self", {
+        postHref,
+        body: options.body,
+        headers: options.headers,
+        method: options.method,
+    });
+});
+
+// elements
+/**
+ * @type {HTMLDivElement}
+ */
+let runtimeElements;
+window.addEventListener("DOMContentLoaded", () => {
+    runtimeElements = document.getElementById("app-runtime-elements");
+});
+
+// inital startup & basic menu
 window.addEventListener("DOMContentLoaded", () => {
     const stateArea = document.getElementById("app-state");
     if (stateArea) setInterval(() => {
@@ -17,12 +42,24 @@ window.addEventListener("DOMContentLoaded", () => {
             ipcRenderer.invoke("kill-overlay-window");
         };
     }
+
+    const clearRuntimeElements = document.getElementById("app-clear-runtime-elements");
+    const clearRuntimeElementsAudioTab = document.getElementById("app-clear-runtime-elements-audio");
+    if (clearRuntimeElements && clearRuntimeElementsAudioTab) {
+        clearRuntimeElements.onclick = () => {
+            runtimeElements.innerHTML = "";
+        };
+        clearRuntimeElementsAudioTab.onclick = () => {
+            runtimeElements.innerHTML = "";
+        };
+    }
 });
 
+// handler funcs
 const createElementAudio = () => {
     const audio = document.createElement("audio");
     audio.style = "display:none;";
-    document.body.appendChild(audio);
+    runtimeElements.appendChild(audio);
     return audio;
 };
 

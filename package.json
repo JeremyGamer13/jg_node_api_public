@@ -12,6 +12,7 @@
         "express": "^4.19.2",
         "glob": "^11.0.2",
         "gtts": "^0.2.1",
+        "jg-node-utils": "github:JeremyGamer13/jg_node_utils#main",
         "screenshot-desktop": "^1.15.1",
         "uiohook-napi": "^1.5.4",
         "uuid": "^11.0.5"
