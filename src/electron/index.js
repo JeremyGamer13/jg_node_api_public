@@ -37,7 +37,7 @@ const createOverlayWindow = () => {
     // Making the overlay window fullscreen breaks some apps that also want to be in fullscreen.
     // The taskbar will stay visible inside of games if we use real fullscreen.
     const display = electron.screen.getPrimaryDisplay();
-    const { width, height } = display.workAreaSize;
+    const { x, y, width, height } = display.workArea;
     const win = new electron.BrowserWindow({
         icon: path.join(__dirname, '../../assets/icon_o.png'),
         width,
@@ -55,7 +55,7 @@ const createOverlayWindow = () => {
 
     win.setIgnoreMouseEvents(true);
     win.setAlwaysOnTop(true, "screen-saver");
-    win.setPosition(0, 0, false);
+    win.setPosition(x, y, false);
     win.blur();
 
     win.loadFile(path.join(__dirname, 'overlay.html'));
