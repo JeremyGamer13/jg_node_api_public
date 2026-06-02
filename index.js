@@ -5,9 +5,10 @@ const { glob } = require("glob");
 const AppGlobal = require("./src/util/global");
 const env = require("./src/util/env-util");
 
-const bodyParser = require('body-parser');
-const express = require('express')
+const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+const authBearerParser = require('auth-bearer-parser').default;
 
 const app = express();
 const port = env.getNumber("PORT");
@@ -20,16 +21,57 @@ app.use(cors({
     origin: '*',
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
+app.use(authBearerParser());
 app.use(bodyParser.urlencoded({
-    limit: "10mb",
+    limit: env.get("BODY_LIMIT"),
     extended: false
 }));
-app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.json({ limit: env.get("BODY_LIMIT") }));
+
+const apiToken = env.get("TOKEN");
+if (!apiToken) console.warn("WARNING: No TOKEN is set in .env, jg_node_api is running open to the public");
+app.use((req, res, next) => {
+    if (apiToken && req.path.toLowerCase().startsWith("/api/") && req.token !== apiToken)
+        return res.status(403).json({ error: "Unauthorized" });
+    next(); // Passes control to the next middleware/route
+});
 
 app.get('/', async function (_, res) {
     const state = AppGlobal.state;
     res.json(state);
 });
+
+// user pages
+app.get('/textupload', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/textupload.html")));
+
+// user pages assets
+app.get('/all.css', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/all.css")));
+
+// cdn
+const shouldHostCDN = env.getBool("HOST_CDN");
+const cdnFolderPath = path.join(__dirname, "./assets/cdn");
+if (shouldHostCDN && fs.existsSync(cdnFolderPath)) {
+    const deviceName = env.get("DEVICE_NAME");
+    const cdnPriority = env.getNumber("HOST_CDN_PRIORITY");
+    const cdnType = env.get("HOST_CDN_TYPE");
+    const cdnAlts = env.get("HOST_CDN_ALTERNATIVES").split(",");
+    const cdnMaxAge = env.get("HOST_CDN_MAX_AGE");
+    app.get('/cdn-stats', (_, res) => {
+        res.json({
+            available: true,
+            device: deviceName,
+            priority: cdnPriority,
+            type: cdnType,
+            alternatives: cdnAlts,
+            maxAge: cdnMaxAge,
+        });
+    });
+    app.use('/cdn', express.static(cdnFolderPath, {
+        maxAge: cdnMaxAge,
+        index: false,
+        fallthrough: false,
+    }));
+}
 
 // endpoints
 // NOTE: All endpoints and index.js will be ran within electron sometimes. Keep this in mind.
@@ -72,38 +114,6 @@ glob('./src/api/**').then((paths) => { // ["/api/audio.js"]
         }
     }
 });
-
-// user pages
-app.get('/textupload', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/textupload.html")));
-
-// user pages assets
-app.get('/all.css', (_, res) => res.sendFile(path.join(__dirname, "./src/pages/all.css")));
-
-// cdn
-const shouldHostCDN = env.getBool("HOST_CDN");
-const cdnFolderPath = path.join(__dirname, "./assets/cdn");
-if (shouldHostCDN && fs.existsSync(cdnFolderPath)) {
-    const deviceName = env.get("DEVICE_NAME");
-    const cdnPriority = env.getNumber("HOST_CDN_PRIORITY");
-    const cdnType = env.get("HOST_CDN_TYPE");
-    const cdnAlts = env.get("HOST_CDN_ALTERNATIVES").split(",");
-    const cdnMaxAge = env.get("HOST_CDN_MAX_AGE");
-    app.get('/cdn-stats', (_, res) => {
-        res.json({
-            available: true,
-            device: deviceName,
-            priority: cdnPriority,
-            type: cdnType,
-            alternatives: cdnAlts,
-            maxAge: cdnMaxAge,
-        });
-    });
-    app.use('/cdn', express.static(cdnFolderPath, {
-        maxAge: cdnMaxAge,
-        index: false,
-        fallthrough: false,
-    }));
-}
 
 app.listen(port, () => console.log('Started server on port ' + port));
 

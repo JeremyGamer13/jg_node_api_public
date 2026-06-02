@@ -27,6 +27,9 @@ body {
 
     resize: vertical;
 }
+.specific-textupload-input {
+    width: 50%;
+}
 .specific-textupload-button {
     width: 50%;
     height: 10%;

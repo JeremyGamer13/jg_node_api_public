@@ -23,7 +23,6 @@ module.exports = {
         const window = electron.getOverlayWindow();
         if (!window) return res.status(403).json({ error: "Overlay window is not active" });
 
-        // TODO: Have a type that defines a video position, rotation, and scale.
         switch (req.query.type) {
             case "fullscreen-with-screenshot": {
                 if (!env.getBool("ALLOW_OPERATING_SYSTEM_APIS")) return res.status(403).json({ error: "Disabled on this host" });
