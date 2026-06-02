@@ -80,8 +80,13 @@ const createHandlers = () => {
             throw new Error("Invalid URL");
         }
 
+        const token = env.get("TOKEN");
+        const headers = { ...options.headers };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
         const response = await fetch(url, {
             ...options,
+            headers,
             redirect: "error",
         });
         const text = await response.text();
