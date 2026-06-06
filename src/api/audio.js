@@ -23,7 +23,7 @@ module.exports = {
         window.webContents.send("play-audio-normal", {
             path: audioPath,
 
-            volume: env.getNumber("AUDIO_VOLUME"),
+            volume: (Math.min(req.query.volume || 1, 1) * env.getNumber("AUDIO_VOLUME")),
             playbackRate: Number(req.query.speed || 1),
         });
 
