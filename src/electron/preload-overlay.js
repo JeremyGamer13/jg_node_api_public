@@ -123,16 +123,16 @@ const runSceneEventTriggeredHandler = (behaviorType, element, target, scene) => 
 const createSceneEventHandler = (eventType, element, target, scene) => {
     if (eventType.startsWith("onload")) {
         const type = slice(eventType, "onload");
-        element.onload = () => runSceneEventTriggeredHandler(type, element, target, scene);
+        element.addEventListener("load", () => runSceneEventTriggeredHandler(type, element, target, scene));
     } else if (eventType.startsWith("onerror")) {
         const type = slice(eventType, "onerror");
-        element.onerror = () => runSceneEventTriggeredHandler(type, element, target, scene);
+        element.addEventListener("error", () => runSceneEventTriggeredHandler(type, element, target, scene));
     } else if (eventType.startsWith("onplay")) {
         const type = slice(eventType, "onplay");
-        element.onplay = () => runSceneEventTriggeredHandler(type, element, target, scene);
+        element.addEventListener("play", () => runSceneEventTriggeredHandler(type, element, target, scene));
     } else if (eventType.startsWith("onended")) {
         const type = slice(eventType, "onended");
-        element.onended = () => runSceneEventTriggeredHandler(type, element, target, scene);
+        element.addEventListener("ended", () => runSceneEventTriggeredHandler(type, element, target, scene));
     }
 };
 
@@ -318,8 +318,10 @@ ipcRenderer.on("display-scene", (_, opts) => {
                 case "onendedunmute":
                 case "onendeddestroy":
                 case "onendedend":
-                    const target = document.getElementById(objectIdPrefix + value);
-                    createSceneEventHandler(propertyName, htmlElement, target, sceneContainer);
+                    runAfterInit.push(() => {
+                        const target = document.getElementById(objectIdPrefix + value);
+                        createSceneEventHandler(propertyName, htmlElement, target, sceneContainer);
+                    });
                     continue;
             }
 

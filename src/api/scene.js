@@ -27,6 +27,7 @@ module.exports = {
 
         const scene = new Scene();
 
+        let existingScreenshot = "";
         const assetsPath = path.join(__dirname, "../../assets") + path.sep;
         try {
             for (const key in req.query) {
@@ -41,8 +42,9 @@ module.exports = {
                     switch (value) {
                         case "screenshot":
                             if (!env.getBool("ALLOW_OPERATING_SYSTEM_APIS")) throw new Error("Disabled on this host");
-                            const screenshot = await OperatingSystem.screenshot(true);
-                            const dataUrl = "data:image/png;base64," + screenshot.toString("base64");
+                            const screenshot = existingScreenshot ? null : await OperatingSystem.screenshot(true);
+                            const dataUrl = existingScreenshot ? existingScreenshot : "data:image/png;base64," + screenshot.toString("base64");
+                            existingScreenshot = dataUrl;
                             sceneObject.type = "image";
                             sceneObject.assetPath = dataUrl;
                             sceneObject.style.position = "absolute";
