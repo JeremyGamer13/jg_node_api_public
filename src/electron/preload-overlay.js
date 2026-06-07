@@ -284,6 +284,16 @@ ipcRenderer.on("display-scene", (_, opts) => {
                 case "onloadunmute":
                 case "onloaddestroy":
                 case "onloadend":
+                    if (object.type === "object" || object.type === "text") {
+                        // objects & texts cant "load" so just run onload events after init 
+                        runAfterInit.push(() => {
+                            const type = slice(propertyName, "onload");
+                            const target = document.getElementById(objectIdPrefix + value);
+                            runSceneEventTriggeredHandler(type, htmlElement, target, scene);
+                        });
+                        continue; // dont add the eventHandler for these types
+                    }
+                // onload falls through for non-object & non-text
                 case "onerrorshow":
                 case "onerrorhide":
                 case "onerrorpause":
